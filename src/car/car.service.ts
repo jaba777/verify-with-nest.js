@@ -23,26 +23,61 @@ export class CarService {
     return `This action returns all car`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} car`;
+  async findOne(id: number) {
+    const car = await this.carRepository.findOne({
+      select: ['id', 'color', 'age'],
+      where: { id },
+      relations: ['user'], // Include the 'user' relation
+    });
+    if (!car) {
+      throw { statusCode: 402, message: 'Car not found' };
+    }
+    return car;
   }
 
   async update(id: number, createCarDto: CreateCarDto) {
     const findUser = await this.userRepository.findOne({
-      where: {id},
-      relations: {cars: true}
-    })
+      where: { id },
+      relations: { cars: true },
+    });
     if (!findUser) {
-      return null; 
+      return null;
     }
 
-   const cars = new Car({
-     ...createCarDto,
-   });
+    const cars = new Car(createCarDto);
 
-   findUser.cars.push(cars)
-    
+    findUser.cars.push(cars);
+
     return await this.entityManager.save(findUser);
+  }
+
+  async updateCar(id: number, carId: number, createCarDto: CreateCarDto) {
+    const car = await this.carRepository.findOne({
+      select: ['id', 'color', 'age'],
+      where: { id: carId },
+      relations: ['user'], // Include the 'user' relation
+    });
+    if (!car) {
+      throw { statusCode: 402, message: 'Car not found' };
+    }
+
+    if (car.user.id !== id) {
+      throw { statusCode: 402, message: 'this isn not your car' };
+    }
+
+    const updatedCar = await this.carRepository.findOne({
+      where: { id: carId },
+    });
+    if (!updatedCar) {
+      throw { statusCode: 402, message: 'Car not foundssss' };
+    }
+
+    updatedCar.model = createCarDto.model;
+    updatedCar.color = createCarDto.color;
+    updatedCar.age = createCarDto.age;
+    updatedCar.describe = createCarDto.describe;
+
+    return this.carRepository.save(updatedCar);
   }
 
   remove(id: number) {

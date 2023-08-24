@@ -24,7 +24,9 @@ export class UserService {
     ) {
       throw { statusCode: 409, message: 'please fill all input' };
     }
-
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(createUserDto.email)) {
+      throw { statusCode: 403, message: 'invalid email' };
+    }
     const hashPassword = await bcrypt.hash(createUserDto.password, 10);
 
     const user = new User({
@@ -39,8 +41,6 @@ export class UserService {
     const findUser = await this.userRepository.findOne({
       where: { email: signUserDto.email },
     });
-
-    console.log('findUser', signUserDto);
 
     if (!findUser) {
       throw { statusCode: 400, message: "this meil isn't registered" };
@@ -73,6 +73,11 @@ export class UserService {
     });
     return findOne;
   }
+
+  getProfile() {
+    return this.userRepository.find();
+  }
+
   async remove(id: number) {
     return await this.userRepository.delete(id);
   }
