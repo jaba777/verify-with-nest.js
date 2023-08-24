@@ -5,6 +5,7 @@ import {
   Body,
   Patch,
   Param,
+  Request,
   Put,
   Res,
   Delete,
@@ -58,17 +59,18 @@ export class CarController {
   }
 
   @UseGuards(AuthGuard)
-  @Put(':id/:carId')
+  @Put(':id')
   async updateCar(
     @Param('id') id: string,
-    @Param('carId') carId: string,
     @Body() createCarDto: CreateCarDto,
+    @Request() req,
     @Res() res: Response,
   ) {
     try {
+      const user= req.user;
       const updateCar = await this.carService.updateCar(
         +id,
-        +carId,
+        user.sub,
         createCarDto,
       );
       return res.status(HttpStatus.OK).send({

@@ -51,22 +51,22 @@ export class CarService {
     return await this.entityManager.save(findUser);
   }
 
-  async updateCar(id: number, carId: number, createCarDto: CreateCarDto) {
+  async updateCar(id: number, userId: number, createCarDto: CreateCarDto) {
     const car = await this.carRepository.findOne({
       select: ['id', 'color', 'age'],
-      where: { id: carId },
+      where: { id: id },
       relations: ['user'], // Include the 'user' relation
     });
     if (!car) {
       throw { statusCode: 402, message: 'Car not found' };
     }
 
-    if (car.user.id !== id) {
+    if (car.user.id !== userId) {
       throw { statusCode: 402, message: 'this isn not your car' };
     }
 
     const updatedCar = await this.carRepository.findOne({
-      where: { id: carId },
+      where: { id: id },
     });
     if (!updatedCar) {
       throw { statusCode: 402, message: 'Car not foundssss' };
