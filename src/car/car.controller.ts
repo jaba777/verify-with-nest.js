@@ -67,7 +67,7 @@ export class CarController {
     @Res() res: Response,
   ) {
     try {
-      const user= req.user;
+      const user = req.user;
       const updateCar = await this.carService.updateCar(
         +id,
         user.sub,
@@ -85,8 +85,21 @@ export class CarController {
     }
   }
 
+  @UseGuards(AuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.carService.remove(+id);
+  async remove(@Param('id') id: string, @Request() req, @Res() res: Response) {
+    try {
+       const user = req.user;
+      const deleteCar = await this.carService.remove(+id, user.sub);
+      return res.status(HttpStatus.OK).send({
+        status: 'success',
+        deleteCar,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).send({
+        status: 'failed',
+        error: error.message,
+      });
+    }
   }
 }

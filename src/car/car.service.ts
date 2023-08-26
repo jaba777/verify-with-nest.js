@@ -80,7 +80,18 @@ export class CarService {
     return this.carRepository.save(updatedCar);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} car`;
+  async remove(id: number, userId: number) {
+    const car = await this.carRepository.findOne({
+      where: { id },
+      relations: { user: true },
+    });
+    if (!car) {
+      throw { statusCode: 402, message: 'Car has already been removed' };
+    }
+    if (car.user.id !== userId) {
+      throw { statusCode: 402, message: 'this isn not your car' };
+    }
+
+    return this.carRepository.delete(id);
   }
 }
